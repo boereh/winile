@@ -1,7 +1,7 @@
 {
   "name": "winile",
   "version": "0.1.0",
-  "description": "",
+  "description": "a deeply inspired file manager",
   "type": "module",
   "scripts": {
     "dev": "vite dev",
@@ -13,17 +13,36 @@
   },
   "license": "MIT",
   "dependencies": {
+    "@iconify-json/fluent": "^1.2.15",
+    "@iconify-json/fluent-emoji": "^1.2.3",
+    "@iconify-json/material-symbols": "^1.2.15",
+    "@iconify-json/ph": "^1.2.2",
     "@tauri-apps/api": "^2",
-    "@tauri-apps/plugin-opener": "^2"
+    "@tauri-apps/plugin-fs": "~2",
+    "@tauri-apps/plugin-global-shortcut": "~2",
+    "@tauri-apps/plugin-opener": "^2",
+    "@tauri-apps/plugin-process": "~2",
+    "@tauri-apps/plugin-shell": "~2",
+    "@unocss/reset": "66.1.0-beta.3",
+    "runed": "^0.24.0",
+    "unplugin-icons": "^22.1.0"
   },
   "devDependencies": {
     "@sveltejs/adapter-static": "^3.0.6",
     "@sveltejs/kit": "^2.9.0",
     "@sveltejs/vite-plugin-svelte": "^5.0.0",
+    "@sveu/browser": "^1.0.1",
+    "@tauri-apps/cli": "^2",
+    "@unocss/svelte-scoped": "66.1.0-beta.3",
     "svelte": "^5.0.0",
     "svelte-check": "^4.0.0",
     "typescript": "~5.6.2",
-    "vite": "^6.0.3",
-    "@tauri-apps/cli": "^2"
+    "unocss": "66.1.0-beta.3",
+    "vite": "^6.0.3"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
   }
 }
