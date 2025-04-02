@@ -7,39 +7,73 @@
   import { readDir } from "@tauri-apps/plugin-fs";
   import { closeCurrentTab, createTab } from "$lib/utils";
   import { PressedKeys, watch } from "runed";
-  const keys = new PressedKeys();
 
-  const isCtrlWPressed = $derived(keys.has("Control", "w"));
-  const isCtrlTPressed = $derived(keys.has("Control", "t"));
+  const pressed_keys = new PressedKeys();
 
-  let files = $state<string[]>([]);
-  let logs = $state<any[]>([]);
+  const isCtrlWPressed = $derived.by(() => {
+    let keys = ["Control", "w"];
+    if (keys.length !== pressed_keys.all.length) return false;
+    return keys.every((key) => pressed_keys.has(key));
+  });
+  const isCtrlTPressed = $derived.by(() => {
+    let keys = ["Control", "t"];
+    if (keys.length !== pressed_keys.all.length) return false;
+    return keys.every((key) => pressed_keys.has(key));
+  });
+  const isCtrlTabPressed = $derived.by(() => {
+    let keys = ["Control", "tab"];
+    if (keys.length !== pressed_keys.all.length) return false;
+    return keys.every((key) => pressed_keys.has(key));
+  });
+  const isCtrlShiftTabPressed = $derived.by(() => {
+    let keys = ["Control", "Shift", "tab"];
+    if (keys.length !== pressed_keys.all.length) return false;
+    return keys.every((key) => pressed_keys.has(key));
+  });
 
   const { children } = $props();
 
   Command.create("whoami")
     .execute()
-    .then(({ stdout }) => whoami.set(stdout.trim()));
+    .then(({ stdout }) => {
+      whoami.set(stdout.trim());
+
+      tabs.set([
+        {
+          path: `/home/${stdout.trim()}`,
+          history: new Map(),
+        },
+        {
+          path: "/var",
+          history: new Map(),
+        },
+        {
+          path: "/usr/share",
+          history: new Map(),
+        },
+      ]);
+      current_tab.set(0);
+    });
 
   $effect(() => {
     if (isCtrlWPressed) closeCurrentTab();
     if (isCtrlTPressed) createTab();
-  });
+    if (isCtrlTabPressed)
+      current_tab.update((c) => (c >= $tabs.length - 1 ? c : c + 1));
+    if (isCtrlShiftTabPressed) {
+      console.log("shift tab");
 
-  $effect(() => {
-    const tab = $tabs[$current_tab];
-
-    readDir(tab)
-      .then((f) => {
-        files = f.map((file) => file.name);
-      })
-      .catch(console.error);
+      current_tab.update((c) => (c < 1 ? c : c - 1));
+    }
   });
 </script>
 
-<Tabs />
-<Menubar />
+<div class="w-screen h-screen overflow-hidden flex flex-col">
+  <Tabs />
+  <Menubar />
 
-{logs}
-
-{@render children()}
+  <div class="flex-grow flex">
+    <div></div>
+    {@render children()}
+  </div>
+</div>

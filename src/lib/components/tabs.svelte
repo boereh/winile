@@ -2,33 +2,53 @@
   import { current_tab, tabs, whoami } from "$lib/stores";
   import WindowButtons from "$lib/components/window-buttons.svelte";
   import IconFolder from "virtual:icons/fluent-emoji/file-folder";
+  import IconFolderOpen from "virtual:icons/fluent-emoji/open-file-folder";
   import IconComputer from "virtual:icons/fluent-emoji/desktop-computer";
   import IconHouse from "virtual:icons/fluent-emoji/house";
   // import IconDismiss from "virtual:icons/fluent/dismiss-16-regular";
   import IconDismiss from "virtual:icons/ph/x";
   import IconAdd from "virtual:icons/fluent/add-24-regular";
   import IconArrow from "virtual:icons/fluent/arrow-left-24-regular";
+  import { closeTab, createTab } from "$lib/utils";
+  import { page } from "$app/state";
 
-  function createTab() {
-    tabs.update((tabs) => [...tabs, "/home"]);
-    current_tab.set($tabs.length - 1);
-  }
+  let tab_buttons = $state<HTMLDivElement[]>([]);
+  let last_tab = $state<number>(0);
+
+  console.log(page.params.path);
+
+  $effect(() => {
+    const button = tab_buttons[$current_tab];
+
+    if (!button) return;
+
+    button.scrollIntoView({
+      behavior: "smooth",
+      block: "nearest",
+    });
+  });
 </script>
 
 <div
   data-tauri-drag-region
-  class="bg-zinc-100 flex select-none max-w-full items-center"
+  class="bg-zinc-100 flex select-none max-w-full items-center px-1"
 >
-  <button>
-    <IconArrow />
-  </button>
-
   <div
     class="flex font-light items-center text-sm max-w-full overflow-x-auto p-1 pr-0 snap-x snap-mandatory"
     style="scrollbar-width:none"
+    onwheel={({ target, deltaY }: WheelEvent) => {
+      console.log(deltaY);
+      const left = (target as HTMLDivElement).scrollLeft;
+
+      (target as HTMLDivElement).scrollTo({
+        left: left + deltaY,
+        behavior: "smooth",
+      });
+    }}
   >
     {#each $tabs as tab, index}
       <div
+        bind:this={tab_buttons[index]}
         class={[
           "h-9 flex items-center rounded-md transition flex-grow max-w-56 relative group min-w-32 w-screen snap-start",
           index === $current_tab
@@ -42,20 +62,22 @@
             "flex-grow flex items-center gap-2 cursor-pointer p-2 h-full w-full",
           ]}
         >
-          {#if tab === "/"}
+          {#if tab.path === "/"}
             <IconComputer />
-          {:else if tab === `/home/${$whoami}`}
+          {:else if tab.path === `/home/${$whoami}`}
             <IconHouse />
+          {:else if $current_tab === index}
+            <IconFolderOpen class="mb-0.5" />
           {:else}
             <IconFolder class="mb-0.5" />
           {/if}
 
-          {#if tab === "/"}
+          {#if tab.path === "/"}
             {$whoami}
-          {:else if tab === `/home/${$whoami}`}
+          {:else if tab.path === `/home/${$whoami}`}
             Home
           {:else}
-            {tab.split("/").at(-1)}
+            {tab.path.split("/").at(-1)}
           {/if}
         </button>
 
@@ -64,10 +86,7 @@
             "absolute right-2 grid palce-items-center rounded-md text-xxs p-1.5 hidden group-hover:block transition",
             index === $current_tab ? "hover:bg-zinc-200" : "hover:bg-zinc-300",
           ]}
-          onclick={() => {
-            current_tab.set(index - 1);
-            tabs.update((tabs) => tabs.filter((_, i) => i !== index));
-          }}
+          onclick={() => closeTab(index)}
         >
           <IconDismiss />
         </button>
@@ -88,7 +107,7 @@
 
   <button
     class="h-9 w-9 min-w-9 grid place-items-center rounded-md hover:bg-zinc-200 transition"
-    onclick={createTab}
+    onclick={() => createTab()}
   >
     <IconAdd />
   </button>
